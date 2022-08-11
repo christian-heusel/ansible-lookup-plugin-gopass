@@ -26,9 +26,11 @@
 # [0] https://www.gopass.pw/
 #
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 from ansible.utils.display import Display
+
 display = Display()
 
 import subprocess
@@ -41,11 +43,14 @@ GOPASS_EXEC = 'gopass'
 
 VALID_PARAMS = frozenset(('length', 'symbols', 'regenerate'))
 
+
 def _parse_parameters(term, params):
     # Check for invalid parameters.  Probably a user typo
     invalid_params = frozenset(params.keys()).difference(VALID_PARAMS)
     if invalid_params:
-        raise AnsibleError('Unrecognized parameter(s) given to password lookup: %s' % ', '.join(invalid_params))
+        raise AnsibleError(
+            'Unrecognized parameter(s) given to password lookup: %s' %
+            ', '.join(invalid_params))
 
     # Set defaults
     params['length'] = params.get('length', 32)
@@ -58,12 +63,15 @@ def _parse_parameters(term, params):
 def get_password(path):
     """Get password from pass."""
     command = f'{GOPASS_EXEC} show {path}'
-    with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE) as process:
+    with subprocess.Popen(command,
+                          shell=True,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE) as process:
         (stdout, stderr) = process.communicate()
         if process.returncode == 0:
             return stdout.splitlines()[0].decode('utf-8')
     raise Exception(stderr)
+
 
 def generate_password(path, length, symbols, force=False):
     """Generate password using gopass."""
@@ -73,16 +81,19 @@ def generate_password(path, length, symbols, force=False):
     if force:
         args.append('--force')
 
-
     command = f"{GOPASS_EXEC} generate {' '.join(args)} {path} {length}"
     display.vvv(f'COMMAND: {command}')
-    with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE) as process:
+    with subprocess.Popen(command,
+                          shell=True,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE) as process:
         (stdout, stderr) = process.communicate()
         if process.returncode != 0:
             raise Exception(stderr)
 
+
 class LookupModule(LookupBase):
+
     def run(self, terms, variables=None, **kwargs):
         ret = []
 
@@ -97,19 +108,25 @@ class LookupModule(LookupBase):
             name, params = _parse_parameters(term, kwargs)
             if params['regenerate']:
                 try:
-                    generate_password(name, params['length'], params['symbols'], force=True)
+                    generate_password(name,
+                                      params['length'],
+                                      params['symbols'],
+                                      force=True)
                     display.vvv(f'Generated password for {name}')
                 except Exception as e:
-                    raise AnsibleError(f"lookup_plugin.gopass({term}) returned {e.message}")
+                    raise AnsibleError(
+                        f"lookup_plugin.gopass({term}) returned {e.message}")
 
             try:
                 password = get_password(term)
             except:
                 try:
-                    generate_password(name, params['length'], params['symbols'])
+                    generate_password(name, params['length'],
+                                      params['symbols'])
                     display.vvv(f'Generated password for {name}')
                     password = get_password(name)
                 except Exception as e:
-                    raise AnsibleError(f"lookup_plugin.gopass({term}) returned {e.message}")
+                    raise AnsibleError(
+                        f"lookup_plugin.gopass({term}) returned {e.message}")
             ret.append(password)
         return ret
