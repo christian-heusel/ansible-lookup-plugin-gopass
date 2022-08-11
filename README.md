@@ -54,7 +54,7 @@ You can use parameters to control how `pass generate` will be called.
 password: "{{ lookup('gopass', 'path/to/your/password', length=16, symbols=True, regenerate=True) }}"
 ```
 
-## License & Acknoledgements
+## License & Acknowledgements
 
 The contents of this repository are based on https://github.com/gcoop-libre/ansible-lookup-plugin-pass and share a common history.
 
