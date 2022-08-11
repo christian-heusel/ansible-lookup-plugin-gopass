@@ -1,12 +1,12 @@
 # Ansible Pass Lookup Plugin
 
-> Ansible lookup plugin for ZXC24's [pass][0]  password manager.
+> Ansible lookup plugin for [gopass][0]  password manager.
 
-This lookup plugin allows you to use a [pass][0] compatible password store to
-generate passwords. It mimics de behaviour of the password lookup, but using pass
-instead of plaintext files for storing the passwords.
+This lookup plugin allows you to use [gopass][0] to generate passwords. It
+mimics de behaviour of the password lookup, but using gopass instead of plaintext
+files for storing the passwords.
 
-If the password doesn't exist it will be generated.
+If the password doesn't exist it will be generated with the parameters.
 
 ## Usage
 
@@ -22,14 +22,14 @@ password instead of the path to a file. For example, if you would normally get
 your password with
 
 ```
-$ pass path/to/your/password
+$ gopass show path/to/your/password
 ```
 
 you would use it like this in a playbook to set the password of a user
 
 ```yaml
 vars:
-  password: "{{ lookup('pass', 'path/to/your/password') }}"
+  password: "{{ lookup('gopass', 'path/to/your/password') }}"
 
 tasks:
   - name: set password for user debian
@@ -39,12 +39,6 @@ tasks:
       state: present
       shell: /bin/bash
 ```
-
-## Settings
-
-By default it uses `~/.password-store` as the password store. If you need to
-change this set the `ANSIBLE_PASS_PASSWORD_STORE_DIR` environment variable to the
-absolute path of the password store you want to use.
 
 ## Parameters
 
@@ -57,12 +51,13 @@ You can use parameters to control how `pass generate` will be called.
 ### Example
 
 ```yaml
-password: "{{ lookup('pass', 'path/to/your/password length=16 symbols=True regenerate=True') }}"
-
+password: "{{ lookup('gopass', 'path/to/your/password', length=16, symbols=True, regenerate=True) }}"
 ```
 
-## License
+## License & Acknoledgements
+
+The contents of this repository are based on https://github.com/gcoop-libre/ansible-lookup-plugin-pass and share a common history.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 
-[0]: https://www.passwordstore.org/ "pass"
+[0]: https://www.gopass.pw/ "gopass"
