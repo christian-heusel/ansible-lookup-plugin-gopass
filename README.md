@@ -28,16 +28,20 @@ $ gopass show path/to/your/password
 you would use it like this in a playbook to set the password of a user
 
 ```yaml
-vars:
-  password: "{{ lookup('gopass', 'path/to/your/password') }}"
+---
+- hosts: monitoringserver
+  tasks:
+    - set_fact:
+        password: "{{ lookup('gopass', 'path/to/your/password') }}"
+      # https://docs.ansible.com/ansible/latest/reference_appendices/logging.html#protecting-sensitive-data-with-no-log
+      no_log: true
 
-tasks:
-  - name: set password for user debian
-    user:
-      name: debian
-      password: "{{ password | password_hash('sha512') }}"
-      state: present
-      shell: /bin/bash
+    - name: set password for user debian
+      user:
+        name: debian
+        password: "{{ password | password_hash('sha512') }}"
+        state: present
+        shell: /bin/bash
 ```
 
 ## Parameters
