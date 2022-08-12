@@ -1,4 +1,4 @@
-# Ansible Pass Lookup Plugin
+# Ansible `gopass` Lookup Plugin
 
 > Ansible lookup plugin for [gopass][0]  password manager.
 
