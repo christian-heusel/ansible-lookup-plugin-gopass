@@ -41,7 +41,7 @@ from ansible.parsing.splitter import parse_kv
 
 GOPASS_EXEC = 'gopass'
 
-VALID_PARAMS = frozenset(('length', 'symbols', 'regenerate'))
+VALID_PARAMS = frozenset(('length', 'symbols', 'regenerate', 'list'))
 
 
 def _parse_parameters(term, params):
@@ -56,6 +56,7 @@ def _parse_parameters(term, params):
     params['length'] = params.get('length', 32)
     params["symbols"] = params.get('symbols', False)
     params["regenerate"] = params.get('regenerate', False)
+    params["list"] = params.get('list', False)
 
     return term, params
 
@@ -70,8 +71,23 @@ def get_password(path):
         (stdout, stderr) = process.communicate()
         if process.returncode == 0:
             return stdout.splitlines()[0].decode('utf-8')
+
     raise Exception(stderr)
 
+def list_password(path):
+    """Get password list from pass."""
+    command = f'{GOPASS_EXEC} list --flat {path}'
+    with subprocess.Popen(command,
+                          shell=True,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE) as process:
+        (stdout, stderr) = process.communicate()
+        if process.returncode == 0:
+            lines = [line.decode("utf-8") for line in stdout.splitlines()]
+            print(lines)
+            return lines
+
+    raise Exception(stderr)
 
 def generate_password(path, length, symbols, force=False):
     """Generate password using gopass."""
@@ -106,6 +122,9 @@ class LookupModule(LookupBase):
             https://github.com/ansible/ansible/issues/6550
             '''
             name, params = _parse_parameters(term, kwargs)
+            if params['list']:
+                ret.append(list_password(name))
+                continue
             if params['regenerate']:
                 try:
                     generate_password(name,
