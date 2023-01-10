@@ -1,6 +1,6 @@
 #
 # This script comes with ABSOLUTELY NO WARRANTY, use at own risk
-# Copyright (C) 2022 Christian Heusel <christian@heusel.eu>
+# Copyright (C) Christian Heusel <christian@heusel.eu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,15 +29,13 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-from ansible.utils.display import Display
-
-display = Display()
-
 import subprocess
 
+from ansible.utils.display import Display
 from ansible.errors import AnsibleError
 from ansible.plugins.lookup import LookupBase
-from ansible.parsing.splitter import parse_kv
+
+DISPLAY = Display()
 
 GOPASS_EXEC = 'gopass'
 
@@ -49,7 +47,7 @@ def _parse_parameters(term, params):
     invalid_params = frozenset(params.keys()).difference(VALID_PARAMS)
     if invalid_params:
         raise AnsibleError(
-            'Unrecognized parameter(s) given to password lookup: %s' %
+            'Unrecognized parameter(s) given to password lookup: ' +
             ', '.join(invalid_params))
 
     # Set defaults
@@ -74,6 +72,7 @@ def get_password(path):
 
     raise Exception(stderr)
 
+
 def list_password(path):
     """Get password list from pass."""
     command = f'{GOPASS_EXEC} list --flat {path}'
@@ -89,6 +88,7 @@ def list_password(path):
 
     raise Exception(stderr)
 
+
 def generate_password(path, length, symbols, force=False):
     """Generate password using gopass."""
     args = []
@@ -98,7 +98,7 @@ def generate_password(path, length, symbols, force=False):
         args.append('--force')
 
     command = f"{GOPASS_EXEC} generate {' '.join(args)} {path} {length}"
-    display.vvv(f'COMMAND: {command}')
+    DISPLAY.vvv(f'COMMAND: {command}')
     with subprocess.Popen(command,
                           shell=True,
                           stdout=subprocess.PIPE,
@@ -110,42 +110,36 @@ def generate_password(path, length, symbols, force=False):
 
 class LookupModule(LookupBase):
 
-    def run(self, terms, variables=None, **kwargs):
+    def run(self, paths, variables=None, **kwargs):
         ret = []
-
-        for term in terms:
-            '''
-            http://docs.python.org/2/library/subprocess.html#popen-constructor
-            The shell argument (which defaults to False) specifies whether to use the
-            shell as the program to execute. If shell is True, it is recommended to pass
-            args as a string rather than as a sequence
-            https://github.com/ansible/ansible/issues/6550
-            '''
-            name, params = _parse_parameters(term, kwargs)
+        for path in paths:
+            name, params = _parse_parameters(path, kwargs)
             if params['list']:
                 ret.append(list_password(name))
                 continue
+
             if params['regenerate']:
                 try:
                     generate_password(name,
                                       params['length'],
                                       params['symbols'],
                                       force=True)
-                    display.vvv(f'Generated password for {name}')
+                    DISPLAY.vvv(f'Generated password for {name}')
                 except Exception as e:
                     raise AnsibleError(
-                        f"lookup_plugin.gopass({term}) returned {e.message}")
+                        f"lookup_plugin.gopass({path}) returned {e.message}")
 
             try:
-                password = get_password(term)
+                password = get_password(path)
             except:
                 try:
                     generate_password(name, params['length'],
                                       params['symbols'])
-                    display.vvv(f'Generated password for {name}')
+                    DISPLAY.vvv(f'Generated password for {name}')
                     password = get_password(name)
                 except Exception as e:
                     raise AnsibleError(
-                        f"lookup_plugin.gopass({term}) returned {e.message}")
+                        f"lookup_plugin.gopass({path}) returned {e.message}")
             ret.append(password)
+
         return ret
