@@ -51,11 +51,24 @@ You can use parameters to control how `pass generate` will be called.
 * **`length`:** length of the generated password (default: `32`).
 * **`symbols`:** include symbols in the generated password (default: `False`).
 * **`regenerate`:** force the generation of a new password (default: `False`).
+* **`list`:** list the passwords under the given path (default: `False`).
 
 ### Example
 
+#### Get a single password
+
 ```yaml
 password: "{{ lookup('gopass', 'path/to/your/password', length=16, symbols=True, regenerate=True) }}"
+```
+
+#### Get all passwords under a path
+
+```yaml
+- debug:
+    msg: "{{ lookup('gopass', item) }}"
+  # https://docs.ansible.com/ansible/latest/reference_appendices/logging.html#protecting-sensitive-data-with-no-log
+  # no_log: true
+  with_items: "{{ lookup('gopass', 'heuselfamily/mqtt/', list=True) }}"
 ```
 
 ## License & Acknowledgements

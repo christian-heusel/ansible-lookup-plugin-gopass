@@ -83,7 +83,6 @@ def list_password(path):
         (stdout, stderr) = process.communicate()
         if process.returncode == 0:
             lines = [line.decode("utf-8") for line in stdout.splitlines()]
-            print(lines)
             return lines
 
     raise Exception(stderr)
