@@ -1,10 +1,10 @@
 # Ansible `gopass` Lookup Plugin
 
-> Ansible lookup plugin for [gopass][0]  password manager.
+> Ansible lookup plugin for the [gopass][0] password manager.
 
 This lookup plugin allows you to use [gopass][0] to generate passwords. It
-mimics de behaviour of the password lookup, but using gopass instead of plaintext
-files for storing the passwords.
+mimics the behaviour of the password lookup, but using gopass instead of
+plaintext files for storing the passwords.
 
 If the password doesn't exist it will be generated with the parameters.
 
@@ -44,24 +44,31 @@ you would use it like this in a playbook to set the password of a user
         shell: /bin/bash
 ```
 
-## Parameters
+### Parameters
 
-You can use parameters to control how `pass generate` will be called.
+You can use parameters to control how `gopass generate` will be called.
 
 * **`length`:** length of the generated password (default: `32`).
 * **`symbols`:** include symbols in the generated password (default: `False`).
 * **`regenerate`:** force the generation of a new password (default: `False`).
 * **`list`:** list the passwords under the given path (default: `False`).
 
-### Example
+## Installation
 
-#### Get a single password
+### Arch Linux
+
+This ansible plugin is availiable via the AUR as
+[`ansible-gopass`](https://aur.archlinux.org/packages/ansible-gopass).
+
+## Examples
+
+### Get a single password
 
 ```yaml
 password: "{{ lookup('gopass', 'path/to/your/password', length=16, symbols=True, regenerate=True) }}"
 ```
 
-#### Get all passwords under a path
+### Get all passwords under a path
 
 ```yaml
 - debug:
